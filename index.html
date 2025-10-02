@@ -199,15 +199,30 @@
 
   <script>
     // Substitua estes dados pelo seu projeto Firebase real
-    const firebaseConfig = {
-     apiKey: "AIzaSyCu-02niwZHjFI1YPzYZ5qcMf_9SPpHbVA",
-  authDomain: "adote-me-3d610.firebaseapp.com",
-  projectId: "adote-me-3d610",
-  storageBucket: "adote-me-3d610.firebasestorage.app",
-  messagingSenderId: "564731892039",
-  appId: "1:564731892039:web:0ca749ded3a03a968ebc62",
-  measurementId: "G-TZDB8HVLER"
-    };
+    // Em vez de ter firebaseConfig fixo no código, faça:
+
+async function initializeApp() {
+  try {
+    const response = await fetch('/api/firebaseConfig');
+    if (!response.ok) throw new Error('Erro ao buscar a configuração Firebase');
+    const firebaseConfig = await response.json();
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    db = firebase.firestore();
+    
+    // Continua o resto do código...
+    initSensorsAndLocation();
+    loadAdoptionLocations();
+  } catch (error) {
+    console.error('Erro ao inicializar Firebase:', error);
+    alert('Erro na conexão com Firebase. Verifique as configurações.');
+  }
+}
+
+// Chame initializeApp() para iniciar a aplicação
+initializeApp();
 
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
