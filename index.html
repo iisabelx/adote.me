@@ -9,24 +9,47 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"
   />
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    /* Temas claro e escuro */
     body {
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       background: #f0f2f5;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: background 0.3s, color 0.3s;
+      color: #333;
     }
+    body.dark {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    body.dark .sidebar {
+      background: #1e1e1e;
+      box-shadow: none;
+      color: #e0e0e0;
+    }
+    body.dark .header {
+      background: linear-gradient(135deg, #222, #333);
+      color: #eee;
+      box-shadow: none;
+    }
+    /* Manter CSS original */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     .header {
       background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
       color: white;
       padding: 20px;
       text-align: center;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: background 0.3s;
+    }
+    .header.dark {
+      background: linear-gradient(135deg, #222, #333);
     }
     .header h1 {
       font-size: 2rem;
@@ -51,6 +74,7 @@
       padding: 20px;
       box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
       overflow-y: auto;
+      transition: background 0.3s, color 0.3s;
     }
     .sidebar h2 {
       margin-bottom: 20px;
@@ -81,6 +105,7 @@
       width: 100%;
       cursor: pointer;
       margin-bottom: 20px;
+      transition: background 0.3s;
     }
     .toggle-btn:hover {
       background: #5a6268;
@@ -126,12 +151,50 @@
       background: transparent;
       border: none;
     }
+    /* Estilos para botão excluir dentro da popup */
+    .popup-delete-btn {
+      margin-top: 8px;
+      display: inline-block;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    /* Estilos para lista de animais no formulário */
+    #animalList .animal-entry {
+      margin-bottom: 10px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fafafa;
+      position: relative;
+    }
+    #animalList .animal-entry input,
+    #animalList .animal-entry textarea {
+      margin-bottom: 6px;
+    }
+    #animalList .remove-animal-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 3px 6px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="header">
+  <div class="header" id="header">
     <h1>🐾 Mapa de Adoção de Animais</h1>
     <p>Encontre animais para adoção perto de você ou cadastre um novo ponto.</p>
+    <!-- Botão para alternar tema -->
+    <button id="themeToggleBtn" class="toggle-btn" style="max-width: 150px; margin: 10px auto 0 auto;">Modo Escuro</button>
   </div>
   <div class="container">
     <div id="map"></div>
@@ -153,14 +216,21 @@
             <label for="ongName">Nome da ONG:</label>
             <input type="text" id="ongName" required />
           </div>
-          <div class="form-group">
-            <label for="animalName">Nome do Animal:</label>
-            <input type="text" id="animalName" required />
+          <!-- Lista dinâmica de animais -->
+          <div id="animalList">
+            <div class="animal-entry">
+              <div class="form-group">
+                <label>Nome do Animal:</label>
+                <input type="text" class="animalName" required />
+              </div>
+              <div class="form-group">
+                <label>Info. do Animal:</label>
+                <textarea class="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
+              </div>
+              <button type="button" class="remove-animal-btn" title="Remover animal">&times;</button>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="animalInfo">Info. do Animal:</label>
-            <textarea id="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
-          </div>
+          <button type="button" id="addAnimalBtn" class="toggle-btn" style="background:#17a2b8;">Adicionar Animal</button>
           <div class="form-group">
             <label for="eventDate">Data do Evento:</label>
             <input type="date" id="eventDate" required />
@@ -198,46 +268,51 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
 
   <script>
-    // Substitua estes dados pelo seu projeto Firebase real
-    // Em vez de ter firebaseConfig fixo no código, faça:
+    // Inicialização Firebase (mantém seu código original para buscar configs)
+    async function initializeApp() {
+      try {
+        const response = await fetch('/api/firebaseConfig');
+        if (!response.ok) throw new Error('Erro ao buscar a configuração Firebase');
+        const firebaseConfig = await response.json();
 
-async function initializeApp() {
-  try {
-    const response = await fetch('/api/firebaseConfig');
-    if (!response.ok) throw new Error('Erro ao buscar a configuração Firebase');
-    const firebaseConfig = await response.json();
-    
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        db = firebase.firestore();
+
+        initSensorsAndLocation();
+        loadAdoptionLocations();
+      } catch (error) {
+        console.error('Erro ao inicializar Firebase:', error);
+        alert('Erro na conexão com Firebase. Verifique as configurações.');
+      }
     }
-    db = firebase.firestore();
-    
-    // Continua o resto do código...
-    initSensorsAndLocation();
-    loadAdoptionLocations();
-  } catch (error) {
-    console.error('Erro ao inicializar Firebase:', error);
-    alert('Erro na conexão com Firebase. Verifique as configurações.');
-  }
-}
 
-// Chame initializeApp() para iniciar a aplicação
-initializeApp();
-
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.firestore();
-
+    // Variáveis globais
+    let db;
     let map = L.map("map").setView([-23.5505, -46.6333], 10);
+    let userMarker;
+    let adoptionMarkers = [];
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
-    let userMarker;
-    let adoptionMarkers = [];
+    // Função para alternar tema claro/escuro
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    themeToggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      document.getElementById('header').classList.toggle('dark');
+      if(document.body.classList.contains('dark')){
+        themeToggleBtn.textContent = 'Modo Claro';
+      } else {
+        themeToggleBtn.textContent = 'Modo Escuro';
+      }
+    });
 
+    // Inicialização de sensores e localização (seu código original)
     function initSensorsAndLocation() {
+      // ... (mantém seu código original deste método)
       const userIcon = L.divIcon({
         html: "📍",
         className: "user-icon leaflet-div-icon",
@@ -308,13 +383,18 @@ initializeApp();
       }
     }
 
+    // Para carregar todos os pontos e adicionar no mapa com botão de excluir
     async function loadAdoptionLocations() {
+      // Remove marcadores antigos do mapa
+      adoptionMarkers.forEach(m => map.removeLayer(m));
+      adoptionMarkers = [];
+
       try {
         const snapshot = await db.collection("adoptionLocations").get();
         snapshot.forEach((doc) => {
           const data = doc.data();
           if (data.localizacao && data.localizacao.latitude && data.localizacao.longitude) {
-            addAdoptionMarker(data);
+            addAdoptionMarker(data, doc.id);
           }
         });
       } catch (error) {
@@ -322,16 +402,33 @@ initializeApp();
       }
     }
 
-    function addAdoptionMarker(data) {
+    // Modificado para receber o ID do doc e adicionar botão excluir
+    function addAdoptionMarker(data, docId) {
       const lat = data.localizacao.latitude;
       const lon = data.localizacao.longitude;
+
+      // Exibir lista de animais
+      let animaisHtml = '';
+      if(data.animais && Array.isArray(data.animais)){
+        data.animais.forEach((animal, idx) => {
+          animaisHtml += `<b>Animal ${idx+1}:</b> ${animal.nome}<br>Info: ${animal.info || 'N/A'}<br><br>`;
+        });
+      } else {
+        // fallback caso dado antigo tenha animal_nome único
+        animaisHtml = `
+          <b>Animal:</b> ${data.animal_nome || ''}<br>
+          Info: ${data.animal_info || 'N/A'}<br><br>
+        `;
+      }
+
       const popupContent = `
         <b>${data.nome_ong}</b><br>
-        Animal: ${data.animal_nome}<br>
-        Info: ${data.animal_info || "N/A"}<br>
+        ${animaisHtml}
         Data: ${data.data_evento}<br>
-        Hora: ${data.horario_evento}
+        Hora: ${data.horario_evento}<br>
+        <button class="popup-delete-btn" data-id="${docId}">Excluir</button>
       `;
+
       const adoptionIcon = L.divIcon({
         html: "🐾",
         className: "adoption-icon leaflet-div-icon",
@@ -341,38 +438,92 @@ initializeApp();
       const newMarker = L.marker([lat, lon], { icon: adoptionIcon })
         .addTo(map)
         .bindPopup(popupContent);
+
+      // Listener para botão excluir
+      newMarker.on("popupopen", () => {
+        const btn = document.querySelector('.popup-delete-btn');
+        if (btn) {
+          btn.addEventListener('click', async () => {
+            if(confirm('Deseja mesmo excluir este ponto de adoção?')) {
+              try {
+                await db.collection('adoptionLocations').doc(docId).delete();
+                map.removeLayer(newMarker);
+                alert('Ponto excluído com sucesso!');
+              } catch (err) {
+                alert('Erro ao excluir: ' + err.message);
+              }
+            }
+          });
+        }
+      });
+
       adoptionMarkers.push(newMarker);
     }
 
-    document
-      .getElementById("adoptionForm")
-      .addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const formStatus = document.getElementById("formStatus");
-        const data = {
-          nome_ong: document.getElementById("ongName").value,
-          animal_nome: document.getElementById("animalName").value,
-          animal_info: document.getElementById("animalInfo").value,
-          data_evento: document.getElementById("eventDate").value,
-          horario_evento: document.getElementById("eventTime").value,
-          localizacao: {
-            latitude: parseFloat(document.getElementById("adoptionLat").value),
-            longitude: parseFloat(document.getElementById("adoptionLon").value),
-          },
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        };
-        try {
-          await db.collection("adoptionLocations").add(data);
-          formStatus.textContent = "Ponto de adoção salvo com sucesso!";
-          formStatus.style.color = "green";
-          document.getElementById("adoptionForm").reset();
-          addAdoptionMarker(data);
-        } catch (error) {
-          console.error("Erro ao salvar ponto de adoção:", error);
-          formStatus.textContent = "Erro ao salvar. Verifique as regras do Firebase.";
-          formStatus.style.color = "red";
-        }
+    // Eventos para formulário agora para múltiplos animais
+    const animalList = document.getElementById('animalList');
+    document.getElementById('addAnimalBtn').addEventListener('click', () => {
+      const animalEntry = document.createElement('div');
+      animalEntry.classList.add('animal-entry');
+      animalEntry.innerHTML = `
+        <div class="form-group">
+          <label>Nome do Animal:</label>
+          <input type="text" class="animalName" required />
+        </div>
+        <div class="form-group">
+          <label>Info. do Animal:</label>
+          <textarea class="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
+        </div>
+        <button type="button" class="remove-animal-btn" title="Remover animal">&times;</button>
+      `;
+      animalList.appendChild(animalEntry);
+
+      animalEntry.querySelector('.remove-animal-btn').addEventListener('click', () => {
+        animalList.removeChild(animalEntry);
       });
+    });
+
+    document.getElementById("adoptionForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const formStatus = document.getElementById("formStatus");
+
+      // Montar array de animais
+      const animais = [];
+      const animalNames = document.querySelectorAll('.animalName');
+      const animalInfos = document.querySelectorAll('.animalInfo');
+      for(let i=0; i<animalNames.length; i++){
+        animais.push({
+          nome: animalNames[i].value,
+          info: animalInfos[i].value
+        });
+      }
+
+      const data = {
+        nome_ong: document.getElementById("ongName").value,
+        animais: animais,
+        data_evento: document.getElementById("eventDate").value,
+        horario_evento: document.getElementById("eventTime").value,
+        localizacao: {
+          latitude: parseFloat(document.getElementById("adoptionLat").value),
+          longitude: parseFloat(document.getElementById("adoptionLon").value),
+        },
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      try {
+        await db.collection("adoptionLocations").add(data);
+        formStatus.textContent = "Ponto de adoção salvo com sucesso!";
+        formStatus.style.color = "green";
+        this.reset();
+        animalList.innerHTML = ''; // limpa lista
+        // Adiciona o primeiro input para o próximo cadastro
+        document.getElementById('addAnimalBtn').click();
+        addAdoptionMarker(data); // mostrará o ponto novo no mapa
+      } catch (error) {
+        console.error("Erro ao salvar ponto de adoção:", error);
+        formStatus.textContent = "Erro ao salvar. Verifique as regras do Firebase.";
+        formStatus.style.color = "red";
+      }
+    });
 
     map.on("click", function (e) {
       document.getElementById("adoptionLat").value = e.latlng.lat.toFixed(6);
@@ -395,8 +546,10 @@ initializeApp();
     });
 
     // Inicialização principal
-    initSensorsAndLocation();
-    loadAdoptionLocations();
+    initializeApp();
+
+    // Pronto o botão cadastrar com um animal quando carrega
+    document.getElementById('addAnimalBtn').click();
   </script>
 </body>
 </html>
