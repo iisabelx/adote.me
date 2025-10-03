@@ -82,9 +82,9 @@
     }
     .container {
       display: flex;
-      /* Removido flex-grow e height para melhor rolagem */
       min-height: 600px;
       overflow: hidden;
+      /* sem flex-grow, sem height para evitar restrição */
     }
     #map {
       flex-grow: 1;
@@ -417,13 +417,12 @@
       }
     }
 
-    /* NOVO: Barra de rolagem para formulário */
+    /* Rolagem para o formulário de cadastro */
     #adoptionFormSection {
       overflow-y: auto;
       max-height: 65vh;
       padding-right: 6px;
     }
-
   </style>
 </head>
 <body>
@@ -487,8 +486,7 @@
     </aside>
   </div>
 
-  <!-- Modal de Login, Cadastro e scripts seguem iguais... -->
+  <!-- Modal Login, Cadastro e scripts seguem iguais -->
 
 </body>
 </html>
-
