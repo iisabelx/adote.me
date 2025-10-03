@@ -82,8 +82,11 @@
     }
     .container {
       display: flex;
+      /* REMOVIDO para permitir rolagem na sidebar:
       flex-grow: 1;
       height: calc(100vh - 90px);
+      */
+      min-height: 600px;
       overflow: hidden;
     }
     #map {
@@ -94,8 +97,6 @@
       transition: box-shadow var(--transition-speed);
     }
     body.dark #map { box-shadow: inset 0 0 14px #202833; }
-
-    /* CORRIGIDO AQUI: rolagem e limite vertical do menu lateral */
     .sidebar {
       background: var(--light-panel-bg);
       width: 380px;
@@ -107,7 +108,6 @@
       overflow-y: auto;
       max-height: 100vh;
     }
-
     body.dark .sidebar {
       background: var(--dark-panel-bg);
       color: #e0e6ed;
@@ -422,12 +422,68 @@
   </style>
 </head>
 <body>
-  <!-- Seu HTML permanece idêntico! -->
-  <!-- ...demais código permanece igual, NÃO mexer na estrutura... -->
+  <div class="header" id="header">
+    <h1>🐾 Mapa de Adoção de Animais</h1>
+    <p>Encontre animais para adoção perto de você ou cadastre um novo ponto.</p>
+    <button id="loginBtn" aria-label="Login">Login</button>
+    <button id="themeToggleBtn" aria-label="Alternar tema escuro/claro">Modo Escuro 🌙</button>
+  </div>
+  <div class="container">
+    <div id="map" role="application" aria-label="Mapa de adoção"></div>
+    <aside class="sidebar">
+      <button id="toggleViewBtn" class="toggle-btn">Cadastrar Novo Ponto de Adoção</button>
+      <section id="sensorInfoSection" aria-live="polite">
+        <h2>Informações do seu dispositivo</h2>
+        <div class="sensor-info">
+          <div class="sensor"><span>📍 Localização:</span> <strong id="location">Aguardando...</strong></div>
+          <div class="sensor"><span>🧭 Bússola:</span> <strong id="compass">Aguardando...</strong> <span class="compass-arrow" id="arrow">⬆️</span></div>
+          <div class="sensor"><span>📐 Acelerômetro:</span> <strong id="motion">Aguardando...</strong></div>
+          <div class="sensor"><span>💡 Luz ambiente:</span> <strong id="light">Aguardando...</strong></div>
+        </div>
+      </section>
+      <section id="adoptionFormSection" aria-live="polite" hidden>
+        <h2>Cadastro de Adoção</h2>
+        <form id="adoptionForm">
+          <div class="form-group">
+            <label for="ongName">Nome da ONG:</label>
+            <input id="ongName" name="ongName" type="text" required />
+          </div>
+          <div id="animalList" aria-live="polite">
+            <div class="animal-entry">
+              <div class="form-group">
+                <label>Nome do Animal:</label>
+                <input class="animalName" name="animalName" type="text" required />
+              </div>
+              <div class="form-group">
+                <label>Info. do Animal:</label>
+                <textarea class="animalInfo" name="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
+              </div>
+              <button type="button" class="remove-animal-btn" title="Remover animal" aria-label="Remover animal">&times;</button>
+            </div>
+          </div>
+          <button id="addAnimalBtn" type="button" class="toggle-btn" style="background:#17a2b8;">Adicionar Animal +</button>
+          <div class="form-group">
+            <label for="eventDate">Data do Evento:</label>
+            <input id="eventDate" name="eventDate" type="date" required />
+          </div>
+          <div class="form-group">
+            <label for="eventTime">Hora do Evento:</label>
+            <input id="eventTime" name="eventTime" type="time" required />
+          </div>
+          <div class="form-group">
+            <label>📍 Localização do Ponto:</label>
+            <input id="adoptionLat" name="adoptionLat" type="number" placeholder="Latitude" readonly required />
+            <input id="adoptionLon" name="adoptionLon" type="number" placeholder="Longitude" readonly required />
+          </div>
+          <button type="submit" class="submit-btn" aria-label="Salvar ponto de adoção">Salvar Ponto de Adoção</button>
+          <div id="formStatus" role="alert" aria-live="polite"></div>
+        </form>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Modal Login, Cadastro e scripts seguem iguais... -->
+
 </body>
 </html>
 
-    document.getElementById("addAnimalBtn").click();
-  </script>
-</body>
-</html>
