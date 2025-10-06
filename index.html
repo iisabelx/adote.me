@@ -102,6 +102,17 @@
       border-radius: 0 var(--border-radius) var(--border-radius) 0;
       display: flex;
       flex-direction: column;
+      height: 100%; /* Adicionado para scroll */
+    }
+    /* Scroll vertical no formulário da sidebar */
+    #adoptionFormSection {
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: 100%;
+      padding-right: 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
     }
     body.dark .sidebar {
       background: var(--dark-panel-bg);
@@ -477,7 +488,7 @@
     </aside>
   </div>
 
-  <!-- Modal de Login -->
+  <!-- Modal Login -->
   <div class="modal-bg" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" aria-describedby="loginDescription">
     <div class="modal-login">
       <h2 id="loginTitle">Login</h2>
