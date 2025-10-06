@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <title>Mapa de Adoção de Animais</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-  <style>
+  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  
+    <style>
     /* Cores e reset */
     :root {
       --primary-blue: #4facfe;
@@ -82,9 +84,9 @@
     }
     .container {
       display: flex;
-      flex-grow: 1;
-      height: calc(100vh - 90px);
+      min-height: 600px;
       overflow: hidden;
+      flex-grow: 1; 
     }
     #map {
       flex-grow: 1;
@@ -101,7 +103,8 @@
       box-shadow: -6px 0 16px rgb(0 0 0 / 0.07);
       border-radius: 0 var(--border-radius) var(--border-radius) 0;
       display: flex;
-      flex-direction: column;
+      flex-direction: column; 
+      max-height: 100%; 
     }
     body.dark .sidebar {
       background: var(--dark-panel-bg);
@@ -158,24 +161,6 @@
       background: #0f9ec5;
       box-shadow: 0 3px 14px rgb(19,136,159,0.16);
     }
-
-    /* INÍCIO DA IMPLEMENTAÇÃO DA ROLAGEM */
-    
-    /* 1. Ocupa o espaço restante e permite rolagem APENAS no formulário */
-    #adoptionFormSection {
-      flex-grow: 1; /* Permite que a seção cresça e ocupe o espaço disponível na sidebar */
-      overflow-y: auto; /* Adiciona a barra de rolagem vertical */
-      padding-right: 5px; /* Adiciona um pequeno padding para que a barra de rolagem não toque na borda */
-      margin-top: -20px; /* Compensa a margem superior do H2 e do form para usar o espaço completo */
-      padding-top: 10px; /* Adiciona padding interno para o conteúdo */
-    }
-
-    /* 2. Garante que os botões de ação permaneçam sempre visíveis */
-    #adoptionForm {
-      padding-bottom: 10px; /* Garante que o último elemento não fique grudado no final da rolagem */
-    }
-    /* FIM DA IMPLEMENTAÇÃO DA ROLAGEM */
-    
     form#adoptionForm {
       display: flex;
       flex-direction: column;
@@ -431,13 +416,15 @@
         position: static;
         margin: 10px 0 0;
       }
-      /* Desativa a rolagem interna em telas menores, permitindo que a tela inteira role */
-      #adoptionFormSection {
-        overflow-y: visible;
-        flex-grow: initial;
-        margin-top: 0;
-        padding-top: 0;
+      .header {
+        padding-bottom: 30px; 
       }
+    }
+    /* Classe para scroll só do formulário */
+    .form-scroll {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      min-height: 0;
     }
   </style>
 </head>
@@ -461,439 +448,431 @@
           <div class="sensor"><span>💡 Luz ambiente:</span> <strong id="light">Aguardando...</strong></div>
         </div>
       </section>
-      <section id="adoptionFormSection" aria-live="polite" hidden>
-        <h2>Cadastro de Adoção</h2>
-        <form id="adoptionForm">
-          <div class="form-group">
-            <label for="ongName">Nome da ONG:</label>
-            <input id="ongName" name="ongName" type="text" required />
-          </div>
-          <div id="animalList" aria-live="polite">
-            <div class="animal-entry">
-              <div class="form-group">
-                <label>Nome do Animal:</label>
-                <input class="animalName" name="animalName" type="text" required />
-              </div>
-              <div class="form-group">
-                <label>Info. do Animal:</label>
-                <textarea class="animalInfo" name="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
-              </div>
-              <button type="button" class="remove-animal-btn" title="Remover animal" aria-label="Remover animal">&times;</button>
+      <div class="form-scroll">
+        <section id="adoptionFormSection" aria-live="polite">
+          <h2>Cadastro de Adoção</h2>
+          <form id="adoptionForm">
+            <div class="form-group">
+              <label for="ongName">Nome da ONG:</label>
+              <input id="ongName" name="ongName" type="text" required />
             </div>
-          </div>
-          <button id="addAnimalBtn" type="button" class="toggle-btn" style="background:#17a2b8;">Adicionar Animal +</button>
-          <div class="form-group">
-            <label for="eventDate">Data do Evento:</label>
-            <input id="eventDate" name="eventDate" type="date" required />
-          </div>
-          <div class="form-group">
-            <label for="eventTime">Hora do Evento:</label>
-            <input id="eventTime" name="eventTime" type="time" required />
-          </div>
-          <div class="form-group">
-            <label>📍 Localização do Ponto:</label>
-            <input id="adoptionLat" name="adoptionLat" type="number" placeholder="Latitude" readonly required />
-            <input id="adoptionLon" name="adoptionLon" type="number" placeholder="Longitude" readonly required />
-          </div>
-          <button type="submit" class="submit-btn" aria-label="Salvar ponto de adoção">Salvar Ponto de Adoção</button>
-          <div id="formStatus" role="alert" aria-live="polite"></div>
-        </form>
-      </section>
+            <div id="animalList" aria-live="polite">
+              <div class="animal-entry">
+                <div class="form-group">
+                  <label>Nome do Animal:</label>
+                  <input class="animalName" name="animalName" type="text" required />
+                </div>
+                <div class="form-group">
+                  <label>Info. do Animal:</label>
+                  <textarea class="animalInfo" name="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
+                </div>
+                <button type="button" class="remove-animal-btn" title="Remover animal" aria-label="Remover animal">&times;</button>
+              </div>
+            </div>
+            <button id="addAnimalBtn" type="button" class="toggle-btn" style="background:#17a2b8;">Adicionar Animal +</button>
+            <div class="form-group">
+              <label for="eventDate">Data do Evento:</label>
+              <input id="eventDate" name="eventDate" type="date" required />
+            </div>
+            <div class="form-group">
+              <label for="eventTime">Hora do Evento:</label>
+              <input id="eventTime" name="eventTime" type="time" required />
+            </div>
+            <div class="form-group">
+              <label>📍 Localização do Ponto:</label>
+              <input id="adoptionLat" name="adoptionLat" type="number" placeholder="Latitude" readonly required />
+              <input id="adoptionLon" name="adoptionLon" type="number" placeholder="Longitude" readonly required />
+            </div>
+            <button type="submit" class="submit-btn" aria-label="Salvar ponto de adoção">Salvar Ponto de Adoção</button>
+            <div id="formStatus" role="alert" aria-live="polite"></div>
+          </form>
+        </section>
+      </div>
     </aside>
   </div>
-
-    <div class="modal-bg" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" aria-describedby="loginDescription">
+  
+  
+    <div class="modal-bg" id="loginModal">
     <div class="modal-login">
-      <h2 id="loginTitle">Login</h2>
-      <form id="loginForm" autocomplete="off">
+      <h2>Acesso de Protetor/ONG</h2>
+      <form id="loginForm">
         <div class="form-group">
-          <label for="loginEmail">Email</label>
-          <input id="loginEmail" type="email" required placeholder="usuario@email.com" />
+          <label for="modalEmail">Email:</label>
+          <input id="modalEmail" type="email" required />
         </div>
         <div class="form-group">
-          <label for="loginSenha">Senha</label>
-          <input id="loginSenha" type="password" required minlength="6" placeholder="Sua senha" />
+          <label for="modalPassword">Senha:</label>
+          <input id="modalPassword" type="password" required />
         </div>
-        <div id="loginStatus" role="alert" aria-live="polite"></div>
         <div class="form-actions">
           <button type="submit" class="btn-modal">Entrar</button>
-          <button id="closeLogin" type="button" class="btn-modal">Cancelar</button>
-        </div>
-        <p style="margin-top:12px; font-size: 0.95rem; text-align: center;">
-          Não tem conta?
-          <a href="#" id="showRegister" style="color: var(--accent-light-blue); text-decoration: underline; cursor: pointer;">Criar uma</a>
-        </p>
-      </form>
-    </div>
-  </div>
-
-    <div class="modal-bg" id="registerModal" role="dialog" aria-modal="true" aria-labelledby="registerTitle" aria-describedby="registerDescription">
-    <div class="modal-login">
-      <h2 id="registerTitle">Criar uma conta</h2>
-      <form id="registerForm" autocomplete="off">
-        <div class="form-group">
-          <label for="regEmail">Email</label>
-          <input id="regEmail" type="email" required placeholder="usuario@email.com" />
-        </div>
-        <div class="form-group">
-          <label for="regSenha">Senha</label>
-          <input id="regSenha" type="password" required minlength="6" placeholder="Sua senha" />
-        </div>
-        <div class="form-group">
-          <label for="regSenha2">Confirmar Senha</label>
-          <input id="regSenha2" type="password" required minlength="6" placeholder="Confirme sua senha" />
-        </div>
-        <div id="registerStatus" role="alert" aria-live="polite"></div>
-        <div class="form-actions">
-          <button type="submit" class="btn-modal">Criar Conta</button>
-          <button id="closeRegister" type="button" class="btn-modal">Cancelar</button>
+          <button type="button" class="btn-modal" id="closeModalBtn" style="background: #6c757d;">Fechar</button>
         </div>
       </form>
     </div>
   </div>
+  
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- 1. CONFIGURAÇÃO DO TEMA ESCURO ---
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const body = document.body;
+    const THEME_STORAGE_KEY = 'adoptionMapTheme';
+    const loginBtn = document.getElementById('loginBtn');
+    
+    // Função para aplicar o tema
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            body.classList.add('dark');
+            themeToggleBtn.textContent = 'Modo Claro ☀️';
+        } else {
+            body.classList.remove('dark');
+            themeToggleBtn.textContent = 'Modo Escuro 🌙';
+        }
+    }
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
-  <script>
-    let db, user = null;
+    // Carregar tema salvo ou usar preferência do sistema
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    } else if (prefersDark) {
+        applyTheme('dark');
+    } else {
+        applyTheme('light');
+    }
 
-    async function initializeApp() {
-      try {
-        const response = await fetch('/api/firebaseConfig');
-        if (!response.ok) throw new Error('Erro ao buscar a configuração Firebase');
-        const firebaseConfig = await response.json();
+    // Listener para o botão de alternância
+    themeToggleBtn.addEventListener('click', () => {
+        const newTheme = body.classList.contains('dark') ? 'light' : 'dark';
+        applyTheme(newTheme);
+        localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+        
+        // Atualiza a camada do mapa ao mudar o tema
+        if (map) {
+            updateMapTileLayer(newTheme);
+        }
+    });
 
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-        }
-        db = firebase.firestore();
+    // --- 2. CONFIGURAÇÃO DE LOGIN (Simples) ---
+    const MODAL_ACTIVE_CLASS = 'active';
+    let isLoggedIn = false;
 
-        firebase.auth().onAuthStateChanged((u) => {
-          user = u;
-          updateAuthUI();
-          loadAdoptionLocations();
-        });
+    // Referências aos elementos do Modal 
+    const loginModal = document.getElementById('loginModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const loginForm = document.getElementById('loginForm');
+    
+    // Evento para abrir o modal de login
+    loginBtn.addEventListener('click', () => {
+        if (isLoggedIn) {
+            // Se já estiver logado, faz logout
+            isLoggedIn = false;
+            loginBtn.textContent = 'Login';
+            loginBtn.classList.remove('logged');
+            document.getElementById('adoptionFormSection').style.display = 'none';
+            document.getElementById('toggleViewBtn').style.display = 'none';
+            document.getElementById('sensorInfoSection').style.display = 'block';
+            alert('Logout realizado com sucesso!');
+        } else {
+            // Se não estiver logado, abre o modal
+            loginModal.classList.add(MODAL_ACTIVE_CLASS);
+        }
+    });
+    
+    // Evento para fechar o modal
+    closeModalBtn.addEventListener('click', () => {
+        loginModal.classList.remove(MODAL_ACTIVE_CLASS);
+    });
 
-        initSensorsAndLocation();
-      } catch (error) {
-        console.error('Erro ao inicializar Firebase:', error);
-        alert('Erro na conexão com Firebase. Verifique as configurações.');
-      }
-    }
+    // Evento de submissão do formulário de login (simulado)
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Simulação de login: sucesso se o email for 'ong@adocao.com' e senha '123'
+        const email = document.getElementById('modalEmail').value;
+        const password = document.getElementById('modalPassword').value;
+        
+        if (email === 'ong@adocao.com' && password === '123') {
+            isLoggedIn = true;
+            loginModal.classList.remove(MODAL_ACTIVE_CLASS);
+            loginBtn.textContent = 'Logout';
+            loginBtn.classList.add('logged');
+            document.getElementById('adoptionFormSection').style.display = 'none'; // Começa mostrando info
+            document.getElementById('toggleViewBtn').style.display = 'block'; // Mostra botão de alternar
+            document.getElementById('sensorInfoSection').style.display = 'block';
+            alert('Login de ONG/Protetor realizado com sucesso!');
+        } else {
+            alert('Email ou senha incorretos. Tente novamente.');
+        }
+        loginForm.reset();
+    });
 
-    const map = L.map("map").setView([-23.5505, -46.6333], 10);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap contributors",
-    }).addTo(map);
+    // Inicia a aplicação com o formulário de cadastro oculto
+    document.getElementById('adoptionFormSection').style.display = 'none';
+    document.getElementById('toggleViewBtn').style.display = 'none';
 
-    let userMarker;
-    let adoptionMarkers = [];
+    // --- 3. CONFIGURAÇÃO DOS SENSORES (Simulação) ---
+    // Simulação dos dados:
+    document.getElementById('location').textContent = 'Lat: -23.52676, Lon: -46.82045 (Simulado)';
+    document.getElementById('compass').textContent = 'Norte (0° Simulado)';
+    document.getElementById('motion').textContent = 'Eixo Z: 9.8 m/s² (Gravidade)';
+    document.getElementById('light').textContent = '85 lux (Ambiente Interno)';
+    
+    // --- 4. CONFIGURAÇÃO DO MAPA (Leaflet) ---
+    let map = null;
+    let markerLayer = new L.LayerGroup();
+    let currentAdoptionMarker = null;
 
-    document.getElementById('themeToggleBtn').addEventListener('click', () => {
-      document.body.classList.toggle('dark');
-      const btn = document.getElementById('themeToggleBtn');
-      if (document.body.classList.contains('dark')) {
-        btn.textContent = 'Modo Claro ☀️';
-      } else {
-        btn.textContent = 'Modo Escuro 🌙';
-      }
-    });
+    // Coordenadas iniciais (São Paulo, Brasil)
+    const initialCoords = [-23.5505, -46.6333]; 
 
-    const loginBtn = document.getElementById('loginBtn');
-    const loginModal = document.getElementById('loginModal');
-    const closeLogin = document.getElementById('closeLogin');
-    const registerModal = document.getElementById('registerModal');
-    const closeRegister = document.getElementById('closeRegister');
+    // Função para definir a camada de mapa base (Tiles)
+    function getMapTileLayer(theme) {
+        const isDark = theme === 'dark';
+        
+        // Tiles para modo claro (padrão)
+        let url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'; 
+        let attribution = '© OpenStreetMap contributors';
+        
+        // Tiles para modo escuro (alternativa do Stadia Maps)
+        if (isDark) {
+            url = 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png'; 
+            attribution = '&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
+        }
 
-    loginBtn.addEventListener('click', () => {
-      if(user) {
-        firebase.auth().signOut();
-      } else {
-        loginModal.classList.add('active');
-        document.getElementById('loginStatus').textContent = '';
-      }
-    });
+        return L.tileLayer(url, {
+            maxZoom: 19,
+            attribution: attribution
+        });
+    }
+    
+    // Inicializa o mapa
+    function initializeMap() {
+        map = L.map('map').setView(initialCoords, 10);
+        map.addLayer(markerLayer);
+        updateMapTileLayer(body.classList.contains('dark') ? 'dark' : 'light');
 
-    closeLogin.addEventListener('click', () => {
-      loginModal.classList.remove('active');
-    });
+        // Evento de clique no mapa para definir a localização de um novo ponto
+        map.on('click', function(e) {
+            if (isLoggedIn && document.getElementById('adoptionFormSection').style.display !== 'none') {
+                const lat = e.latlng.lat.toFixed(6);
+                const lon = e.latlng.lng.toFixed(6);
+                document.getElementById('adoptionLat').value = lat;
+                document.getElementById('adoptionLon').value = lon;
+                
+                // Remove marcador temporário anterior, se existir
+                if (currentAdoptionMarker) {
+                    currentAdoptionMarker.remove();
+                }
+                
+                // Adiciona novo marcador temporário para o local de cadastro
+                const iconHtml = '<span style="color:#17a2b8;">📍</span>';
+                const customIcon = L.divIcon({ className: 'leaflet-div-icon user-icon', html: iconHtml });
+                currentAdoptionMarker = L.marker([lat, lon], { icon: customIcon }).addTo(map)
+                    .bindPopup('Novo Ponto de Adoção aqui.');
+            }
+        });
+    }
+    
+    // Função para atualizar a camada do mapa (alternar entre claro/escuro)
+    let currentTileLayer = null;
+    function updateMapTileLayer(theme) {
+        if (currentTileLayer) {
+            map.removeLayer(currentTileLayer);
+        }
+        currentTileLayer = getMapTileLayer(theme);
+        currentTileLayer.addTo(map);
+    }
 
-    closeRegister.addEventListener('click', () => {
-      registerModal.classList.remove('active');
-    });
+    // Inicializa o mapa
+    initializeMap();
 
-    document.getElementById('showRegister').addEventListener('click', (e) => {
-      e.preventDefault();
-      loginModal.classList.remove('active');
-      registerModal.classList.add('active');
-      document.getElementById('registerStatus').textContent = '';
-    });
 
-    document.getElementById('loginForm').addEventListener('submit', async function(e){
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const senha = document.getElementById('loginSenha').value;
-      const status = document.getElementById('loginStatus');
-      status.textContent = 'Entrando...';
-      try {
-        await firebase.auth().signInWithEmailAndPassword(email, senha);
-        status.textContent = 'Login realizado!';
-        setTimeout(() => { loginModal.classList.remove('active'); }, 1000);
-      } catch(error) {
-        status.textContent = 'Email ou senha inválidos!';
-      }
-    });
+    // --- 5. GESTÃO DOS PONTOS DE ADOÇÃO (Simulação) ---
+    // Pontos de adoção de exemplo
+    let adoptionPoints = JSON.parse(localStorage.getItem('adoptionPoints')) || [
+        { id: 1, name: 'ONG Coração de Bicho', lat: -23.5878, lon: -46.6565, date: '2025-10-12', time: '10:00', animals: [{ name: 'Doguinho Rex', info: 'Vira-lata, 2 anos, adora crianças.' }, { name: 'Gato Miau', info: 'Siamês, 1 ano, castrado.' }] },
+        { id: 2, name: 'Feira Petz Aclimação', lat: -23.5702, lon: -46.6346, date: '2025-10-19', time: '14:30', animals: [{ name: 'Cadelinha Pipa', info: 'Poodle, 5 anos, dócil, resgatada.' }] }
+    ];
 
-    document.getElementById('registerForm').addEventListener('submit', async function(e){
-      e.preventDefault();
-      const email = document.getElementById('regEmail').value.trim();
-      const senha1 = document.getElementById('regSenha').value;
-      const senha2 = document.getElementById('regSenha2').value;
-      const status = document.getElementById('registerStatus');
+    // Função para mostrar os pontos no mapa
+    function renderAdoptionMarkers() {
+        markerLayer.clearLayers();
+        adoptionPoints.forEach(point => {
+            const animalListHtml = point.animals.map(a => `<li><strong>${a.name}</strong>: ${a.info}</li>`).join('');
+            
+            let popupContent = `
+                <div style="font-family: Arial, sans-serif; font-size: 0.95rem;">
+                    <h4 style="margin-bottom: 5px; color: #4facfe;">${point.name}</h4>
+                    <p style="margin-bottom: 8px;"><strong>📅 Data/Hora:</strong> ${new Date(point.date + 'T' + point.time).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</p>
+                    <p style="margin-bottom: 4px; font-weight: bold;">Animais para Adoção:</p>
+                    <ul style="padding-left: 20px; margin-bottom: 8px; list-style-type: disc;">${animalListHtml}</ul>
+                    ${isLoggedIn ? `<button class="popup-delete-btn" data-id="${point.id}">Excluir Ponto</button>` : ''}
+                </div>
+            `;
 
-      if(senha1 !== senha2){
-        status.textContent = "As senhas devem ser iguais!";
-        return;
-      }
-      status.textContent = "Criando conta...";
-      try {
-        await firebase.auth().createUserWithEmailAndPassword(email, senha1);
-        status.textContent = "Conta criada com sucesso!";
-        setTimeout(() => {
-          registerModal.classList.remove('active');
-        }, 1200);
-      } catch(error) {
-        status.textContent = error.message.includes("already") ? "Email já cadastrado." : "Erro ao cadastrar!";
-      }
-    });
+            const iconHtml = '<span style="color:#28a745;">🐾</span>';
+            const customIcon = L.divIcon({ className: 'leaflet-div-icon adoption-icon', html: iconHtml });
 
-    function updateAuthUI(){
-      if(user){
-        loginBtn.textContent = "Logout";
-        loginBtn.classList.add('logged');
-        document.getElementById("adoptionFormSection").hidden = false;
-        document.getElementById("toggleViewBtn").style.display = "";
-      } else {
-        loginBtn.textContent = "Login";
-        loginBtn.classList.remove('logged');
-        document.getElementById("adoptionFormSection").hidden = true;
-        document.getElementById("toggleViewBtn").style.display = "none";
-      }
-    }
+            L.marker([point.lat, point.lon], { icon: customIcon, pointId: point.id })
+                .bindPopup(popupContent)
+                .addTo(markerLayer);
+        });
+        
+        // Adiciona listener para o botão de exclusão
+        markerLayer.eachLayer(layer => {
+            layer.on('popupopen', function() {
+                // Necessário buscar o botão dentro do popup recém-aberto
+                const deleteBtn = layer._popup._container.querySelector(`.popup-delete-btn[data-id="${layer.options.pointId}"]`);
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', () => {
+                        deleteAdoptionPoint(layer.options.pointId);
+                    });
+                }
+            });
+        });
+    }
 
-    function initSensorsAndLocation() {
-      const userIcon = L.divIcon({html: "📍", className: "user-icon leaflet-div-icon",iconSize:[24,24], iconAnchor:[12,12]});
-      userMarker = L.marker([0, 0], {icon: userIcon}).addTo(map);
+    // Função para excluir um ponto
+    function deleteAdoptionPoint(id) {
+        if (confirm('Tem certeza que deseja excluir este ponto de adoção?')) {
+            adoptionPoints = adoptionPoints.filter(p => p.id !== id);
+            localStorage.setItem('adoptionPoints', JSON.stringify(adoptionPoints));
+            renderAdoptionMarkers();
+            document.getElementById('formStatus').textContent = 'Ponto de adoção removido.';
+            setTimeout(() => document.getElementById('formStatus').textContent = '', 3000);
+        }
+    }
+    
+    // Renderiza os pontos de adoção iniciais
+    renderAdoptionMarkers();
 
-      if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-          (pos) => {
-            userMarker.setLatLng([pos.coords.latitude, pos.coords.longitude]);
-            document.getElementById("location").textContent = `Lat: ${pos.coords.latitude.toFixed(5)}, Lon: ${pos.coords.longitude.toFixed(5)}`;
-          },
-          (err) => {
-            document.getElementById("location").textContent = `Erro: ${err.message}`;
-          },
-          { enableHighAccuracy: true }
-        );
-      } else {
-        document.getElementById("location").textContent = "Geolocalização não suportada.";
-      }
 
-      if (window.DeviceOrientationEvent) {
-        window.addEventListener(
-          "deviceorientation",
-          (e) => {
-            if (e.absolute || e.webkitCompassHeading !== undefined) {
-              const heading = e.webkitCompassHeading || 360 - e.alpha;
-              document.getElementById("compass").textContent = heading.toFixed(2) + "°";
-              document.getElementById("arrow").style.transform = `rotate(${heading}deg)`;
-            }
-          },
-          true
-        );
-      } else {
-        document.getElementById("compass").textContent = "Não suportado.";
-      }
+    // --- 6. GESTÃO DO FORMULÁRIO DE CADASTRO ---
+    
+    const adoptionForm = document.getElementById('adoptionForm');
+    const animalListDiv = document.getElementById('animalList');
+    const addAnimalBtn = document.getElementById('addAnimalBtn');
+    const formStatus = document.getElementById('formStatus');
 
-      if (window.DeviceMotionEvent) {
-        window.addEventListener("devicemotion", (e) => {
-          const { x, y, z } = e.acceleration || { x: 0, y: 0, z: 0 };
-          document.getElementById(
-            "motion"
-          ).textContent = `X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}, Z: ${z.toFixed(2)}`;
-        });
-      } else {
-        document.getElementById("motion").textContent = "Não suportado.";
-      }
+    // Função para criar uma nova entrada de animal no formulário
+    function createAnimalEntry() {
+        const newEntry = document.createElement('div');
+        newEntry.className = 'animal-entry';
+        newEntry.innerHTML = `
+            <div class="form-group">
+                <label>Nome do Animal:</label>
+                <input class="animalName" name="animalName" type="text" required />
+            </div>
+            <div class="form-group">
+                <label>Info. do Animal:</label>
+                <textarea class="animalInfo" name="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
+            </div>
+            <button type="button" class="remove-animal-btn" title="Remover animal" aria-label="Remover animal">&times;</button>
+        `;
+        animalListDiv.appendChild(newEntry);
+        newEntry.querySelector('.remove-animal-btn').addEventListener('click', (e) => {
+            if (animalListDiv.children.length > 1) {
+                e.target.closest('.animal-entry').remove();
+            } else {
+                alert('Pelo menos um animal é obrigatório.');
+            }
+        });
+    }
 
-      if ("AmbientLightSensor" in window) {
-        try {
-          const sensor = new AmbientLightSensor();
-          sensor.addEventListener("reading", () => {
-            document.getElementById("light").textContent = sensor.illuminance + " lux";
-          });
-          sensor.start();
-        } catch (err) {
-          document.getElementById("light").textContent = `Erro: ${err.message}`;
-        }
-      } else {
-        document.getElementById("light").textContent = "Não suportado.";
-      }
-    }
+    // Adiciona o listener de remoção para a entrada inicial, garantindo que haja pelo menos uma
+    const initialRemoveBtn = animalListDiv.querySelector('.remove-animal-btn');
+    if (initialRemoveBtn) {
+        initialRemoveBtn.addEventListener('click', (e) => {
+             if (animalListDiv.children.length > 1) {
+                e.target.closest('.animal-entry').remove();
+            } else {
+                alert('Pelo menos um animal é obrigatório.');
+            }
+        });
+    }
 
-    async function loadAdoptionLocations() {
-      adoptionMarkers.forEach((m) => map.removeLayer(m));
-      adoptionMarkers = [];
-      try {
-        const snapshot = await db.collection("adoptionLocations").get();
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          if (data.localizacao && data.localizacao.latitude && data.localizacao.longitude) {
-            addAdoptionMarker(data, doc.id);
-          }
-        });
-      } catch (error) {
-        console.error("Erro ao carregar pontos de adoção:", error);
-      }
-    }
+    addAnimalBtn.addEventListener('click', createAnimalEntry);
 
-    function addAdoptionMarker(data, docId) {
-      const lat = data.localizacao.latitude;
-      const lon = data.localizacao.longitude;
-      let animaisHtml = "";
-      if (data.animais && Array.isArray(data.animais)) {
-        data.animais.forEach((animal, idx) => {
-          animaisHtml += `<b>Animal ${idx + 1}:</b> ${animal.nome}<br>Info: ${animal.info || "N/A"}<br><br>`;
-        });
-      } else {
-        animaisHtml = `<b>Animal:</b> ${data.animal_nome || ""}<br>Info: ${data.animal_info || "N/A"}<br><br>`;
-      }
-      let popupContent = `
-          <b>${data.nome_ong}</b><br>
-          ${animaisHtml}
-          Data: ${data.data_evento}<br>
-          Hora: ${data.horario_evento}<br>
-    `;
-      if (user)
-        popupContent += `<button class="popup-delete-btn" data-id="${docId}">Excluir</button>`;
-      const adoptionIcon = L.divIcon({
-        html: "🐾",
-        className: "adoption-icon leaflet-div-icon",
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
-      });
-      const newMarker = L.marker([lat, lon], { icon: adoptionIcon })
-        .addTo(map)
-        .bindPopup(popupContent);
-      newMarker.on("popupopen", () => {
-        if (user) {
-          const btn = document.querySelector(".popup-delete-btn");
-          if (btn) {
-            btn.addEventListener("click", async () => {
-              if (confirm("Deseja mesmo excluir este ponto de adoção?")) {
-                try {
-                  await db.collection("adoptionLocations").doc(docId).delete();
-                  map.removeLayer(newMarker);
-                  alert("Ponto excluído com sucesso!");
-                } catch (err) {
-                  alert("Erro ao excluir: " + err.message);
-                }
-              }
-            });
-          }
-        }
-      });
-      adoptionMarkers.push(newMarker);
-    }
+    // Evento de submissão do formulário
+    adoptionForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-    const animalList = document.getElementById("animalList");
-    document.getElementById("addAnimalBtn").addEventListener("click", () => {
-      const animalEntry = document.createElement("div");
-      animalEntry.classList.add("animal-entry");
-      animalEntry.innerHTML = `
-        <div class="form-group">
-          <label>Nome do Animal:</label>
-          <input type="text" class="animalName" required />
-        </div>
-        <div class="form-group">
-          <label>Info. do Animal:</label>
-          <textarea class="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
-        </div>
-        <button type="button" class="remove-animal-btn" title="Remover animal">&times;</button>
-      `;
-      animalList.appendChild(animalEntry);
-      animalEntry.querySelector(".remove-animal-btn").addEventListener("click", () => {
-        animalList.removeChild(animalEntry);
-      });
-    });
+        // Coleta dados dos animais
+        const animalEntries = Array.from(animalListDiv.querySelectorAll('.animal-entry'));
+        const animals = animalEntries.map(entry => ({
+            name: entry.querySelector('.animalName').value,
+            info: entry.querySelector('.animalInfo').value
+        })).filter(a => a.name.trim() !== '');
 
-    document.getElementById("adoptionForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-      if (!user) {
-        alert("Faça login para cadastrar!");
-        return;
-      }
-      const formStatus = document.getElementById("formStatus");
-      const animais = [];
-      const animalNames = document.querySelectorAll(".animalName");
-      const animalInfos = document.querySelectorAll(".animalInfo");
-      for (let i = 0; i < animalNames.length; i++) {
-        animais.push({
-          nome: animalNames[i].value,
-          info: animalInfos[i].value,
-        });
-      }
-      const data = {
-        nome_ong: document.getElementById("ongName").value,
-        animais: animais,
-        data_evento: document.getElementById("eventDate").value,
-        horario_evento: document.getElementById("eventTime").value,
-        localizacao: {
-          latitude: parseFloat(document.getElementById("adoptionLat").value),
-          longitude: parseFloat(document.getElementById("adoptionLon").value),
-        },
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        usuario: user.uid,
-      };
-      try {
-        await db.collection("adoptionLocations").add(data);
-        formStatus.textContent = "Ponto de adoção salvo!";
-        formStatus.style.color = "green";
-        this.reset();
-        animalList.innerHTML = "";
-        document.getElementById("addAnimalBtn").click();
-        addAdoptionMarker(data);
-      } catch (error) {
-        formStatus.textContent = "Erro ao salvar.";
-        formStatus.style.color = "red";
-      }
-    });
+        if (animals.length === 0) {
+            formStatus.textContent = 'Por favor, adicione pelo menos um animal.';
+            return;
+        }
 
-    map.on("click", function (e) {
-      document.getElementById("adoptionLat").value = e.latlng.lat.toFixed(6);
-      document.getElementById("adoptionLon").value = e.latlng.lng.toFixed(6);
-    });
+        const newPoint = {
+            id: Date.now(), // ID único baseado no timestamp
+            name: document.getElementById('ongName').value,
+            lat: parseFloat(document.getElementById('adoptionLat').value),
+            lon: parseFloat(document.getElementById('adoptionLon').value),
+            date: document.getElementById('eventDate').value,
+            time: document.getElementById('eventTime').value,
+            animals: animals
+        };
 
-    document.getElementById("toggleViewBtn").addEventListener("click", function () {
-      const formSection = document.getElementById("adoptionFormSection");
-      const sensorSection = document.getElementById("sensorInfoSection");
-      const button = document.getElementById("toggleViewBtn");
-      if (formSection.style.display === "none") {
-        formSection.style.display = "block";
-        sensorSection.style.display = "none";
-        button.textContent = "Ver Minha Localização e Sensores";
-      } else {
-        formSection.style.display = "none";
-        sensorSection.style.display = "block";
-        button.textContent = "Cadastrar Novo Ponto de Adoção";
-      }
-    });
+        if (isNaN(newPoint.lat) || isNaN(newPoint.lon)) {
+             formStatus.textContent = 'Por favor, clique no mapa para definir a localização do ponto.';
+             return;
+        }
 
-    initializeApp();
-    document.getElementById("addAnimalBtn").click();
-  </script>
+        adoptionPoints.push(newPoint);
+        localStorage.setItem('adoptionPoints', JSON.stringify(adoptionPoints));
+        renderAdoptionMarkers();
+        adoptionForm.reset();
+        
+        // Reseta as entradas de animais para o estado inicial
+        while (animalListDiv.children.length > 1) {
+            animalListDiv.removeChild(animalListDiv.lastChild);
+        }
+        animalListDiv.querySelector('.animalName').value = '';
+        animalListDiv.querySelector('.animalInfo').value = '';
+        
+        // Limpa as coordenadas no formulário
+        document.getElementById('adoptionLat').value = '';
+        document.getElementById('adoptionLon').value = '';
+
+        if (currentAdoptionMarker) {
+            map.removeLayer(currentAdoptionMarker);
+            currentAdoptionMarker = null;
+        }
+
+        formStatus.textContent = 'Ponto de adoção salvo com sucesso!';
+        setTimeout(() => formStatus.textContent = '', 3000);
+    });
+    
+    // Alternar entre formulário e informações do dispositivo (para o usuário logado)
+    const toggleViewBtn = document.getElementById('toggleViewBtn');
+    toggleViewBtn.addEventListener('click', () => {
+        const formSection = document.getElementById('adoptionFormSection');
+        const infoSection = document.getElementById('sensorInfoSection');
+        
+        if (formSection.style.display === 'none') {
+            formSection.style.display = 'block';
+            infoSection.style.display = 'none';
+            toggleViewBtn.textContent = 'Ver Informações do Dispositivo';
+        } else {
+            formSection.style.display = 'none';
+            infoSection.style.display = 'block';
+            toggleViewBtn.textContent = 'Cadastrar Novo Ponto de Adoção';
+        }
+    });
+
+});
+</script>
+
 </body>
 </html>
