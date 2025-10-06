@@ -4,188 +4,415 @@
   <meta charset="UTF-8" />
   <title>Mapa de Adoção de Animais</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
   <style>
-    /* Temas claro e escuro */
+    /* Cores e reset */
+    :root {
+      --primary-blue: #4facfe;
+      --primary-cyan: #00f2fe;
+      --dark-bg: #141a21;
+      --dark-panel-bg: #202832;
+      --light-bg: #f0f6fc;
+      --light-panel-bg: #fff;
+      --text-dark: #23272f;
+      --text-light: #e0e6ed;
+      --accent-green: #28a745;
+      --accent-green-dark: #218838;
+      --accent-red: #dc3545;
+      --accent-light-blue: #17a2b8;
+      --border-radius: 10px;
+      --transition-speed: 0.25s;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f0f2f5;
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      background: var(--light-bg);
+      color: var(--text-dark);
       min-height: 100vh;
+      transition: background var(--transition-speed), color var(--transition-speed);
+      font-size: 16px;
       display: flex;
       flex-direction: column;
-      transition: background 0.3s, color 0.3s;
-      color: #333;
     }
     body.dark {
-      background: #121212;
-      color: #e0e0e0;
+      background: var(--dark-bg);
+      color: var(--text-light);
     }
-    body.dark .sidebar {
-      background: #1e1e1e;
-      box-shadow: none;
-      color: #e0e0e0;
-    }
-    body.dark .header {
-      background: linear-gradient(135deg, #222, #333);
-      color: #eee;
-      box-shadow: none;
-    }
-    /* Manter CSS original */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     .header {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-      padding: 20px;
+      background: linear-gradient(135deg, var(--primary-blue), var(--primary-cyan));
+      color: #fff;
+      padding: 22px 20px 18px;
       text-align: center;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: background 0.3s;
-    }
-    .header.dark {
-      background: linear-gradient(135deg, #222, #333);
+      position: relative;
     }
     .header h1 {
-      font-size: 2rem;
-      margin-bottom: 5px;
+      font-size: 2.1rem;
+      font-weight: bold;
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+      text-shadow: 0 1px 2px rgba(10,40,80,0.19);
     }
     .header p {
-      font-size: 1rem;
-      opacity: 0.9;
+      font-size: 1.12rem;
+      opacity: 0.92;
+      font-weight: 500;
+    }
+    #themeToggleBtn, #loginBtn {
+      position: absolute;
+      top: 22px;
+      background: #fff;
+      border-radius: 50px;
+      border: none;
+      padding: 8px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgb(0 0 0 / 0.12);
+      transition: background var(--transition-speed), color var(--transition-speed);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #themeToggleBtn { right: 20px; color: var(--primary-blue); }
+    #themeToggleBtn:hover { color: #fff; background: var(--primary-cyan); }
+    #loginBtn {
+      left: 20px;
+      color: #28a745;
+      font-size:1rem;
+    }
+    #loginBtn.logged {
+      color: #dc3545;
     }
     .container {
       display: flex;
       flex-grow: 1;
+      height: calc(100vh - 90px);
+      overflow: hidden;
     }
     #map {
       flex-grow: 1;
-      height: 100vh;
       min-height: 600px;
+      border-radius: var(--border-radius) 0 0 var(--border-radius);
+      box-shadow: inset 0 0 10px #cbdffa;
+      transition: box-shadow var(--transition-speed);
     }
+    body.dark #map { box-shadow: inset 0 0 14px #202833; }
     .sidebar {
-      background: white;
-      width: 350px;
-      padding: 20px;
-      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
-      overflow-y: auto;
-      transition: background 0.3s, color 0.3s;
+      background: var(--light-panel-bg);
+      width: 380px;
+      padding: 26px 16px;
+      box-shadow: -6px 0 16px rgb(0 0 0 / 0.07);
+      border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      display: flex;
+      flex-direction: column;
+    }
+    body.dark .sidebar {
+      background: var(--dark-panel-bg);
+      color: #e0e6ed;
+      box-shadow: none;
     }
     .sidebar h2 {
       margin-bottom: 20px;
-      color: #333;
+      font-size: 1.23rem;
+      color: var(--text-dark);
+      border-bottom: 2px solid var(--primary-cyan);
+      padding-bottom: 5px;
+      letter-spacing: 0.01em;
     }
+    body.dark .sidebar h2 { color: var(--text-light); }
     .sensor-info {
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       padding: 15px;
-      border-radius: 8px;
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
+      border-radius: var(--border-radius);
+      background: #e7f4ff;
+      border: 1px solid #bbe5fc;
+      color: #1a2a43;
     }
-    .sensor-info .sensor {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
-    }
-    .sensor-info .sensor strong {
-      color: #555;
+    body.dark .sensor-info {
+      background: #23293a;
+      border: 1px solid #334558;
+      color: var(--text-light);
     }
     .toggle-btn {
-      background: #6c757d;
-      color: white;
+      background: var(--primary-blue);
+      color: #fff;
       border: none;
-      padding: 10px;
-      border-radius: 5px;
+      padding: 11px 0;
+      border-radius: var(--border-radius);
       width: 100%;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 22px;
+      box-shadow: 0 3px 9px rgb(0 143 255 / 0.16);
       cursor: pointer;
-      margin-bottom: 20px;
-      transition: background 0.3s;
+      user-select: none;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .toggle-btn:hover {
-      background: #5a6268;
+      background: var(--primary-cyan);
+      box-shadow: 0 3px 15px rgb(0 143 255 / 0.20);
+      color: #fff;
     }
-    #adoptionFormSection {
-      display: none;
+    #addAnimalBtn {
+      background: var(--accent-light-blue);
+      box-shadow: 0 2px 6px rgb(23 162 184 / 0.14);
+    }
+    #addAnimalBtn:hover {
+      background: #0f9ec5;
+      box-shadow: 0 3px 14px rgb(19,136,159,0.16);
+    }
+    form#adoptionForm {
+      display: flex;
+      flex-direction: column;
     }
     .form-group {
       margin-bottom: 15px;
+      flex-direction: column;
+      display: flex;
     }
     .form-group label {
-      display: block;
+      font-size: 1rem;
+      font-weight: 700;
       margin-bottom: 5px;
-      font-weight: 600;
-      color: #333;
+      user-select: none;
+      color: #40354d;
     }
-    .form-group input,
-    .form-group textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+    body.dark .form-group label { color: #e0e0e0; }
+    input[type="text"],input[type="date"],input[type="time"],input[type="number"],textarea {
+      font-size: 1rem;
+      padding: 9px 12px;
+      border-radius: var(--border-radius);
+      border: 1px solid #c4c4c4;
+      background: #fff;
+      color: #2f2f2f;
+      transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+      outline-offset: 2px;
+      outline-color: transparent;
     }
-    .submit-btn {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 10px;
-      border-radius: 5px;
-      width: 100%;
-      cursor: pointer;
+    body.dark input, body.dark textarea {
+      background: #23293a;
+      color: #e0e6ed;
+      border-color: #334558;
     }
-    .submit-btn:hover {
-      background: #218838;
+    input:focus, textarea:focus {
+      border-color: var(--primary-blue);
+      outline: none;
+      box-shadow: 0 0 4px var(--primary-cyan);
+      background: #fff;
+      color: #000;
     }
-    .compass-arrow {
-      display: inline-block;
-      transform-origin: center;
-      font-size: 24px;
-      transition: transform 0.2s;
+    body.dark input:focus, body.dark textarea:focus {
+      background: #333;
+      color: var(--text-light);
     }
-    .leaflet-div-icon {
-      background: transparent;
-      border: none;
+    #animalList {
+      margin-bottom: 12px;
     }
-    /* Estilos para botão excluir dentro da popup */
-    .popup-delete-btn {
-      margin-top: 8px;
-      display: inline-block;
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-    /* Estilos para lista de animais no formulário */
     #animalList .animal-entry {
-      margin-bottom: 10px;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: #fafafa;
+      margin-bottom: 13px;
+      padding: 12px 14px;
+      border: 1px solid #b7d7f7;
+      border-radius: var(--border-radius);
+      background: #f9fbfc;
       position: relative;
+      box-shadow: 0 1px 4px rgb(120 170 220 / 0.08);
     }
-    #animalList .animal-entry input,
-    #animalList .animal-entry textarea {
-      margin-bottom: 6px;
+    body.dark #animalList .animal-entry {
+      background: #273044;
+      border-color: #425176;
     }
     #animalList .remove-animal-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
-      background: #dc3545;
+      top: 10px;
+      right: 10px;
+      background: var(--accent-red);
       color: white;
       border: none;
-      border-radius: 3px;
-      padding: 3px 6px;
+      border-radius: 50%;
+      width: 27px;
+      height: 27px;
       cursor: pointer;
+      font-weight: 700;
+      font-size: 1.14rem;
+      transition: background 0.25s;
+      outline: none;
+      user-select: none;
+      line-height: 0;
+    }
+    #animalList .remove-animal-btn:hover {
+      background: #bb2d3b;
+    }
+    .submit-btn {
+      background: var(--accent-green);
+      color: white;
+      border: none;
+      padding: 11px 0;
+      border-radius: var(--border-radius);
+      width: 100%;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.04rem;
+      margin-top: 6px;
+      box-shadow: 0 3px 9px rgba(40, 167, 69, 0.13);
+      text-transform: none;
+      text-shadow: none;
+    }
+    .submit-btn:hover {
+      background: var(--accent-green-dark);
+      box-shadow: 0 4px 13px rgba(40, 167, 69, 0.25);
+    }
+    .popup-delete-btn {
+      margin-top: 10px;
+      background: var(--accent-red);
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.93rem;
+      user-select: none;
+      font-weight: bold;
+    }
+    .popup-delete-btn:hover {
+      background: #bb2d3b;
+    }
+    .leaflet-div-icon {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    .adoption-icon {
+      background: transparent !important;
+      border: none !important;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .user-icon {
+      background: transparent !important;
+      border: none !important;
+      font-size: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    #formStatus {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-top: 6px;
+      display: block;
+    }
+    /* Modal Login */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(28, 41, 52, 0.23);
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-bg.active {
+      display: flex;
+    }
+    .modal-login {
+      background: #fff;
+      color: #333;
+      border-radius: 10px;
+      min-width: 300px;
+      max-width: 360px;
+      box-shadow: 0 10px 40px #141a21a0;
+      padding: 30px 24px 22px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    body.dark .modal-login {
+      background: #222c37;
+      color: #d7eafd;
+      box-shadow: 0 7px 16px #000a;
+    }
+    .modal-login h2 {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 18px;
+      letter-spacing: 0.01em;
+    }
+    .modal-login .form-group {
+      margin-bottom: 13px;
+    }
+    .modal-login label {
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+    .modal-login input[type="email"],
+    .modal-login input[type="password"] {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 7px;
+      border: 1px solid #b7d7f7;
+      background: #f6fbfd;
+      color: #223248;
+    }
+    body.dark .modal-login input {
+      background: #243049;
+      color: #d7eafd;
+      border-color: #334558;
+    }
+    .modal-login .form-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    .modal-login .btn-modal {
+      border: none;
+      border-radius: 7px;
+      padding: 7px 17px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      background: var(--primary-blue);
+      color: #fff;
+      margin-right: 6px;
+      flex: 1;
+      text-align: center;
+    }
+    .modal-login .btn-modal:last-child {
+      background: var(--accent-red);
+      margin-right: 0;
+    }
+    .modal-login .btn-modal:hover {
+      filter: brightness(1.13);
+    }
+
+    /* Responsividade */
+    @media (max-width: 750px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+      }
+      #map {
+        height: 280px;
+        border-radius: 10px 10px 0 0;
+      }
+      .sidebar {
+        width: 100%;
+        border-radius: 0 0 10px 10px;
+        padding: 20px 14px;
+      }
+      #themeToggleBtn,
+      #loginBtn {
+        position: static;
+        margin: 10px 0 0;
+      }
     }
   </style>
 </head>
@@ -193,14 +420,14 @@
   <div class="header" id="header">
     <h1>🐾 Mapa de Adoção de Animais</h1>
     <p>Encontre animais para adoção perto de você ou cadastre um novo ponto.</p>
-    <!-- Botão para alternar tema -->
-    <button id="themeToggleBtn" class="toggle-btn" style="max-width: 150px; margin: 10px auto 0 auto;">Modo Escuro</button>
+    <button id="loginBtn" aria-label="Login">Login</button>
+    <button id="themeToggleBtn" aria-label="Alternar tema escuro/claro">Modo Escuro 🌙</button>
   </div>
   <div class="container">
-    <div id="map"></div>
-    <div class="sidebar">
+    <div id="map" role="application" aria-label="Mapa de adoção"></div>
+    <aside class="sidebar">
       <button id="toggleViewBtn" class="toggle-btn">Cadastrar Novo Ponto de Adoção</button>
-      <div id="sensorInfoSection">
+      <section id="sensorInfoSection" aria-live="polite">
         <h2>Informações do seu dispositivo</h2>
         <div class="sensor-info">
           <div class="sensor"><span>📍 Localização:</span> <strong id="location">Aguardando...</strong></div>
@@ -208,67 +435,107 @@
           <div class="sensor"><span>📐 Acelerômetro:</span> <strong id="motion">Aguardando...</strong></div>
           <div class="sensor"><span>💡 Luz ambiente:</span> <strong id="light">Aguardando...</strong></div>
         </div>
-      </div>
-      <div id="adoptionFormSection">
-        <h2>Cadastrar Novo Ponto de Adoção</h2>
+      </section>
+      <section id="adoptionFormSection" aria-live="polite" hidden>
+        <h2>Cadastro de Adoção</h2>
         <form id="adoptionForm">
           <div class="form-group">
             <label for="ongName">Nome da ONG:</label>
-            <input type="text" id="ongName" required />
+            <input id="ongName" name="ongName" type="text" required />
           </div>
-          <!-- Lista dinâmica de animais -->
-          <div id="animalList">
+          <div id="animalList" aria-live="polite">
             <div class="animal-entry">
               <div class="form-group">
                 <label>Nome do Animal:</label>
-                <input type="text" class="animalName" required />
+                <input class="animalName" name="animalName" type="text" required />
               </div>
               <div class="form-group">
                 <label>Info. do Animal:</label>
-                <textarea class="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
+                <textarea class="animalInfo" name="animalInfo" placeholder="Raça, idade, temperamento..."></textarea>
               </div>
-              <button type="button" class="remove-animal-btn" title="Remover animal">&times;</button>
+              <button type="button" class="remove-animal-btn" title="Remover animal" aria-label="Remover animal">&times;</button>
             </div>
           </div>
-          <button type="button" id="addAnimalBtn" class="toggle-btn" style="background:#17a2b8;">Adicionar Animal</button>
+          <button id="addAnimalBtn" type="button" class="toggle-btn" style="background:#17a2b8;">Adicionar Animal +</button>
           <div class="form-group">
             <label for="eventDate">Data do Evento:</label>
-            <input type="date" id="eventDate" required />
+            <input id="eventDate" name="eventDate" type="date" required />
           </div>
           <div class="form-group">
             <label for="eventTime">Hora do Evento:</label>
-            <input type="time" id="eventTime" required />
+            <input id="eventTime" name="eventTime" type="time" required />
           </div>
           <div class="form-group">
             <label>📍 Localização do Ponto:</label>
-            <input
-              type="number"
-              id="adoptionLat"
-              placeholder="Latitude"
-              readonly
-              required
-            />
-            <input
-              type="number"
-              id="adoptionLon"
-              placeholder="Longitude"
-              readonly
-              required
-            />
+            <input id="adoptionLat" name="adoptionLat" type="number" placeholder="Latitude" readonly required />
+            <input id="adoptionLon" name="adoptionLon" type="number" placeholder="Longitude" readonly required />
           </div>
-          <button type="submit" class="submit-btn">Salvar Ponto de Adoção</button>
-          <div id="formStatus" style="margin-top: 10px;"></div>
+          <button type="submit" class="submit-btn" aria-label="Salvar ponto de adoção">Salvar Ponto de Adoção</button>
+          <div id="formStatus" role="alert" aria-live="polite"></div>
         </form>
-      </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Modal de Login -->
+  <div class="modal-bg" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle" aria-describedby="loginDescription">
+    <div class="modal-login">
+      <h2 id="loginTitle">Login</h2>
+      <form id="loginForm" autocomplete="off">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" required placeholder="usuario@email.com" />
+        </div>
+        <div class="form-group">
+          <label for="loginSenha">Senha</label>
+          <input id="loginSenha" type="password" required minlength="6" placeholder="Sua senha" />
+        </div>
+        <div id="loginStatus" role="alert" aria-live="polite"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-modal">Entrar</button>
+          <button id="closeLogin" type="button" class="btn-modal">Cancelar</button>
+        </div>
+        <p style="margin-top:12px; font-size: 0.95rem; text-align: center;">
+          Não tem conta?
+          <a href="#" id="showRegister" style="color: var(--accent-light-blue); text-decoration: underline; cursor: pointer;">Criar uma</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Cadastro -->
+  <div class="modal-bg" id="registerModal" role="dialog" aria-modal="true" aria-labelledby="registerTitle" aria-describedby="registerDescription">
+    <div class="modal-login">
+      <h2 id="registerTitle">Criar uma conta</h2>
+      <form id="registerForm" autocomplete="off">
+        <div class="form-group">
+          <label for="regEmail">Email</label>
+          <input id="regEmail" type="email" required placeholder="usuario@email.com" />
+        </div>
+        <div class="form-group">
+          <label for="regSenha">Senha</label>
+          <input id="regSenha" type="password" required minlength="6" placeholder="Sua senha" />
+        </div>
+        <div class="form-group">
+          <label for="regSenha2">Confirmar Senha</label>
+          <input id="regSenha2" type="password" required minlength="6" placeholder="Confirme sua senha" />
+        </div>
+        <div id="registerStatus" role="alert" aria-live="polite"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn-modal">Criar Conta</button>
+          <button id="closeRegister" type="button" class="btn-modal">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
   <script>
-    // Inicialização Firebase (mantém seu código original para buscar configs)
+    let db, user = null;
+
     async function initializeApp() {
       try {
         const response = await fetch('/api/firebaseConfig');
@@ -280,56 +547,128 @@
         }
         db = firebase.firestore();
 
+        firebase.auth().onAuthStateChanged((u) => {
+          user = u;
+          updateAuthUI();
+          loadAdoptionLocations();
+        });
+
         initSensorsAndLocation();
-        loadAdoptionLocations();
       } catch (error) {
         console.error('Erro ao inicializar Firebase:', error);
         alert('Erro na conexão com Firebase. Verifique as configurações.');
       }
     }
 
-    // Variáveis globais
-    let db;
-    let map = L.map("map").setView([-23.5505, -46.6333], 10);
-    let userMarker;
-    let adoptionMarkers = [];
-
+    const map = L.map("map").setView([-23.5505, -46.6333], 10);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
 
-    // Função para alternar tema claro/escuro
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    themeToggleBtn.addEventListener('click', () => {
+    let userMarker;
+    let adoptionMarkers = [];
+
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
       document.body.classList.toggle('dark');
-      document.getElementById('header').classList.toggle('dark');
-      if(document.body.classList.contains('dark')){
-        themeToggleBtn.textContent = 'Modo Claro';
+      const btn = document.getElementById('themeToggleBtn');
+      if (document.body.classList.contains('dark')) {
+        btn.textContent = 'Modo Claro ☀️';
       } else {
-        themeToggleBtn.textContent = 'Modo Escuro';
+        btn.textContent = 'Modo Escuro 🌙';
       }
     });
 
-    // Inicialização de sensores e localização (seu código original)
+    const loginBtn = document.getElementById('loginBtn');
+    const loginModal = document.getElementById('loginModal');
+    const closeLogin = document.getElementById('closeLogin');
+    const registerModal = document.getElementById('registerModal');
+    const closeRegister = document.getElementById('closeRegister');
+
+    loginBtn.addEventListener('click', () => {
+      if(user) {
+        firebase.auth().signOut();
+      } else {
+        loginModal.classList.add('active');
+        document.getElementById('loginStatus').textContent = '';
+      }
+    });
+
+    closeLogin.addEventListener('click', () => {
+      loginModal.classList.remove('active');
+    });
+
+    closeRegister.addEventListener('click', () => {
+      registerModal.classList.remove('active');
+    });
+
+    document.getElementById('showRegister').addEventListener('click', (e) => {
+      e.preventDefault();
+      loginModal.classList.remove('active');
+      registerModal.classList.add('active');
+      document.getElementById('registerStatus').textContent = '';
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const senha = document.getElementById('loginSenha').value;
+      const status = document.getElementById('loginStatus');
+      status.textContent = 'Entrando...';
+      try {
+        await firebase.auth().signInWithEmailAndPassword(email, senha);
+        status.textContent = 'Login realizado!';
+        setTimeout(() => { loginModal.classList.remove('active'); }, 1000);
+      } catch(error) {
+        status.textContent = 'Email ou senha inválidos!';
+      }
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value.trim();
+      const senha1 = document.getElementById('regSenha').value;
+      const senha2 = document.getElementById('regSenha2').value;
+      const status = document.getElementById('registerStatus');
+
+      if(senha1 !== senha2){
+        status.textContent = "As senhas devem ser iguais!";
+        return;
+      }
+      status.textContent = "Criando conta...";
+      try {
+        await firebase.auth().createUserWithEmailAndPassword(email, senha1);
+        status.textContent = "Conta criada com sucesso!";
+        setTimeout(() => {
+          registerModal.classList.remove('active');
+        }, 1200);
+      } catch(error) {
+        status.textContent = error.message.includes("already") ? "Email já cadastrado." : "Erro ao cadastrar!";
+      }
+    });
+
+    function updateAuthUI(){
+      if(user){
+        loginBtn.textContent = "Logout";
+        loginBtn.classList.add('logged');
+        document.getElementById("adoptionFormSection").hidden = false;
+        document.getElementById("toggleViewBtn").style.display = "";
+      } else {
+        loginBtn.textContent = "Login";
+        loginBtn.classList.remove('logged');
+        document.getElementById("adoptionFormSection").hidden = true;
+        document.getElementById("toggleViewBtn").style.display = "none";
+      }
+    }
+
     function initSensorsAndLocation() {
-      // ... (mantém seu código original deste método)
-      const userIcon = L.divIcon({
-        html: "📍",
-        className: "user-icon leaflet-div-icon",
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-      });
-      userMarker = L.marker([0, 0], { icon: userIcon }).addTo(map);
+      const userIcon = L.divIcon({html: "📍", className: "user-icon leaflet-div-icon",iconSize:[24,24], iconAnchor:[12,12]});
+      userMarker = L.marker([0, 0], {icon: userIcon}).addTo(map);
 
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(
           (pos) => {
             userMarker.setLatLng([pos.coords.latitude, pos.coords.longitude]);
-            document.getElementById(
-              "location"
-            ).textContent = `Lat: ${pos.coords.latitude.toFixed(
-              5
-            )}, Lon: ${pos.coords.longitude.toFixed(5)}`;
+            document.getElementById("location").textContent = `Lat: ${pos.coords.latitude.toFixed(5)}, Lon: ${pos.coords.longitude.toFixed(5)}`;
           },
           (err) => {
             document.getElementById("location").textContent = `Erro: ${err.message}`;
@@ -346,8 +685,7 @@
           (e) => {
             if (e.absolute || e.webkitCompassHeading !== undefined) {
               const heading = e.webkitCompassHeading || 360 - e.alpha;
-              document.getElementById("compass").textContent =
-                heading.toFixed(2) + "°";
+              document.getElementById("compass").textContent = heading.toFixed(2) + "°";
               document.getElementById("arrow").style.transform = `rotate(${heading}deg)`;
             }
           },
@@ -383,12 +721,9 @@
       }
     }
 
-    // Para carregar todos os pontos e adicionar no mapa com botão de excluir
     async function loadAdoptionLocations() {
-      // Remove marcadores antigos do mapa
-      adoptionMarkers.forEach(m => map.removeLayer(m));
+      adoptionMarkers.forEach((m) => map.removeLayer(m));
       adoptionMarkers = [];
-
       try {
         const snapshot = await db.collection("adoptionLocations").get();
         snapshot.forEach((doc) => {
@@ -402,69 +737,59 @@
       }
     }
 
-    // Modificado para receber o ID do doc e adicionar botão excluir
     function addAdoptionMarker(data, docId) {
       const lat = data.localizacao.latitude;
       const lon = data.localizacao.longitude;
-
-      // Exibir lista de animais
-      let animaisHtml = '';
-      if(data.animais && Array.isArray(data.animais)){
+      let animaisHtml = "";
+      if (data.animais && Array.isArray(data.animais)) {
         data.animais.forEach((animal, idx) => {
-          animaisHtml += `<b>Animal ${idx+1}:</b> ${animal.nome}<br>Info: ${animal.info || 'N/A'}<br><br>`;
+          animaisHtml += `<b>Animal ${idx + 1}:</b> ${animal.nome}<br>Info: ${animal.info || "N/A"}<br><br>`;
         });
       } else {
-        // fallback caso dado antigo tenha animal_nome único
-        animaisHtml = `
-          <b>Animal:</b> ${data.animal_nome || ''}<br>
-          Info: ${data.animal_info || 'N/A'}<br><br>
-        `;
+        animaisHtml = `<b>Animal:</b> ${data.animal_nome || ""}<br>Info: ${data.animal_info || "N/A"}<br><br>`;
       }
-
-      const popupContent = `
-        <b>${data.nome_ong}</b><br>
-        ${animaisHtml}
-        Data: ${data.data_evento}<br>
-        Hora: ${data.horario_evento}<br>
-        <button class="popup-delete-btn" data-id="${docId}">Excluir</button>
-      `;
-
+      let popupContent = `
+          <b>${data.nome_ong}</b><br>
+          ${animaisHtml}
+          Data: ${data.data_evento}<br>
+          Hora: ${data.horario_evento}<br>
+    `;
+      if (user)
+        popupContent += `<button class="popup-delete-btn" data-id="${docId}">Excluir</button>`;
       const adoptionIcon = L.divIcon({
         html: "🐾",
         className: "adoption-icon leaflet-div-icon",
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
       });
       const newMarker = L.marker([lat, lon], { icon: adoptionIcon })
         .addTo(map)
         .bindPopup(popupContent);
-
-      // Listener para botão excluir
       newMarker.on("popupopen", () => {
-        const btn = document.querySelector('.popup-delete-btn');
-        if (btn) {
-          btn.addEventListener('click', async () => {
-            if(confirm('Deseja mesmo excluir este ponto de adoção?')) {
-              try {
-                await db.collection('adoptionLocations').doc(docId).delete();
-                map.removeLayer(newMarker);
-                alert('Ponto excluído com sucesso!');
-              } catch (err) {
-                alert('Erro ao excluir: ' + err.message);
+        if (user) {
+          const btn = document.querySelector(".popup-delete-btn");
+          if (btn) {
+            btn.addEventListener("click", async () => {
+              if (confirm("Deseja mesmo excluir este ponto de adoção?")) {
+                try {
+                  await db.collection("adoptionLocations").doc(docId).delete();
+                  map.removeLayer(newMarker);
+                  alert("Ponto excluído com sucesso!");
+                } catch (err) {
+                  alert("Erro ao excluir: " + err.message);
+                }
               }
-            }
-          });
+            });
+          }
         }
       });
-
       adoptionMarkers.push(newMarker);
     }
 
-    // Eventos para formulário agora para múltiplos animais
-    const animalList = document.getElementById('animalList');
-    document.getElementById('addAnimalBtn').addEventListener('click', () => {
-      const animalEntry = document.createElement('div');
-      animalEntry.classList.add('animal-entry');
+    const animalList = document.getElementById("animalList");
+    document.getElementById("addAnimalBtn").addEventListener("click", () => {
+      const animalEntry = document.createElement("div");
+      animalEntry.classList.add("animal-entry");
       animalEntry.innerHTML = `
         <div class="form-group">
           <label>Nome do Animal:</label>
@@ -477,27 +802,27 @@
         <button type="button" class="remove-animal-btn" title="Remover animal">&times;</button>
       `;
       animalList.appendChild(animalEntry);
-
-      animalEntry.querySelector('.remove-animal-btn').addEventListener('click', () => {
+      animalEntry.querySelector(".remove-animal-btn").addEventListener("click", () => {
         animalList.removeChild(animalEntry);
       });
     });
 
     document.getElementById("adoptionForm").addEventListener("submit", async function (e) {
       e.preventDefault();
+      if (!user) {
+        alert("Faça login para cadastrar!");
+        return;
+      }
       const formStatus = document.getElementById("formStatus");
-
-      // Montar array de animais
       const animais = [];
-      const animalNames = document.querySelectorAll('.animalName');
-      const animalInfos = document.querySelectorAll('.animalInfo');
-      for(let i=0; i<animalNames.length; i++){
+      const animalNames = document.querySelectorAll(".animalName");
+      const animalInfos = document.querySelectorAll(".animalInfo");
+      for (let i = 0; i < animalNames.length; i++) {
         animais.push({
           nome: animalNames[i].value,
-          info: animalInfos[i].value
+          info: animalInfos[i].value,
         });
       }
-
       const data = {
         nome_ong: document.getElementById("ongName").value,
         animais: animais,
@@ -508,19 +833,18 @@
           longitude: parseFloat(document.getElementById("adoptionLon").value),
         },
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        usuario: user.uid,
       };
       try {
         await db.collection("adoptionLocations").add(data);
-        formStatus.textContent = "Ponto de adoção salvo com sucesso!";
+        formStatus.textContent = "Ponto de adoção salvo!";
         formStatus.style.color = "green";
         this.reset();
-        animalList.innerHTML = ''; // limpa lista
-        // Adiciona o primeiro input para o próximo cadastro
-        document.getElementById('addAnimalBtn').click();
-        addAdoptionMarker(data); // mostrará o ponto novo no mapa
+        animalList.innerHTML = "";
+        document.getElementById("addAnimalBtn").click();
+        addAdoptionMarker(data);
       } catch (error) {
-        console.error("Erro ao salvar ponto de adoção:", error);
-        formStatus.textContent = "Erro ao salvar. Verifique as regras do Firebase.";
+        formStatus.textContent = "Erro ao salvar.";
         formStatus.style.color = "red";
       }
     });
@@ -545,15 +869,11 @@
       }
     });
 
-    // Inicialização principal
     initializeApp();
-
-    // Pronto o botão cadastrar com um animal quando carrega
-    document.getElementById('addAnimalBtn').click();
+    document.getElementById("addAnimalBtn").click();
   </script>
 </body>
 </html>
-
 
 </body>
 
