@@ -159,18 +159,23 @@
       box-shadow: 0 3px 14px rgb(19,136,159,0.16);
     }
 
-    /* NOVO: Estilo para habilitar o scroll na seção do formulário */
+    /* INÍCIO DA IMPLEMENTAÇÃO DA ROLAGEM */
+    
+    /* 1. Ocupa o espaço restante e permite rolagem APENAS no formulário */
     #adoptionFormSection {
-      /* Usamos flex-grow para que a seção ocupe o espaço restante */
-      flex-grow: 1; 
-      /* Ocupa a altura total disponível na sidebar */
-      height: 100%;
-      /* Permite a rolagem vertical quando o conteúdo for maior */
-      overflow-y: auto;
-      /* Adiciona um padding interno para a rolagem */
-      padding-bottom: 10px;
+      flex-grow: 1; /* Permite que a seção cresça e ocupe o espaço disponível na sidebar */
+      overflow-y: auto; /* Adiciona a barra de rolagem vertical */
+      padding-right: 5px; /* Adiciona um pequeno padding para que a barra de rolagem não toque na borda */
+      margin-top: -20px; /* Compensa a margem superior do H2 e do form para usar o espaço completo */
+      padding-top: 10px; /* Adiciona padding interno para o conteúdo */
     }
 
+    /* 2. Garante que os botões de ação permaneçam sempre visíveis */
+    #adoptionForm {
+      padding-bottom: 10px; /* Garante que o último elemento não fique grudado no final da rolagem */
+    }
+    /* FIM DA IMPLEMENTAÇÃO DA ROLAGEM */
+    
     form#adoptionForm {
       display: flex;
       flex-direction: column;
@@ -426,13 +431,12 @@
         position: static;
         margin: 10px 0 0;
       }
-      /* Ajuste para o formulário em telas menores */
+      /* Desativa a rolagem interna em telas menores, permitindo que a tela inteira role */
       #adoptionFormSection {
-        /* Desativa o flex-grow e a altura em telas menores para rolar junto com a sidebar */
-        flex-grow: initial;
-        height: auto;
         overflow-y: visible;
-        padding-bottom: 0;
+        flex-grow: initial;
+        margin-top: 0;
+        padding-top: 0;
       }
     }
   </style>
@@ -687,10 +691,10 @@
         navigator.geolocation.watchPosition(
           (pos) => {
             userMarker.setLatLng([pos.coords.latitude, pos.coords.longitude]);
-            document.getElementById("location").textContent = Lat: ${pos.coords.latitude.toFixed(5)}, Lon: ${pos.coords.longitude.toFixed(5)};
+            document.getElementById("location").textContent = `Lat: ${pos.coords.latitude.toFixed(5)}, Lon: ${pos.coords.longitude.toFixed(5)}`;
           },
           (err) => {
-            document.getElementById("location").textContent = Erro: ${err.message};
+            document.getElementById("location").textContent = `Erro: ${err.message}`;
           },
           { enableHighAccuracy: true }
         );
@@ -705,7 +709,7 @@
             if (e.absolute || e.webkitCompassHeading !== undefined) {
               const heading = e.webkitCompassHeading || 360 - e.alpha;
               document.getElementById("compass").textContent = heading.toFixed(2) + "°";
-              document.getElementById("arrow").style.transform = rotate(${heading}deg);
+              document.getElementById("arrow").style.transform = `rotate(${heading}deg)`;
             }
           },
           true
@@ -719,7 +723,7 @@
           const { x, y, z } = e.acceleration || { x: 0, y: 0, z: 0 };
           document.getElementById(
             "motion"
-          ).textContent = X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}, Z: ${z.toFixed(2)};
+          ).textContent = `X: ${x.toFixed(2)}, Y: ${y.toFixed(2)}, Z: ${z.toFixed(2)}`;
         });
       } else {
         document.getElementById("motion").textContent = "Não suportado.";
@@ -733,7 +737,7 @@
           });
           sensor.start();
         } catch (err) {
-          document.getElementById("light").textContent = Erro: ${err.message};
+          document.getElementById("light").textContent = `Erro: ${err.message}`;
         }
       } else {
         document.getElementById("light").textContent = "Não suportado.";
@@ -762,10 +766,10 @@
       let animaisHtml = "";
       if (data.animais && Array.isArray(data.animais)) {
         data.animais.forEach((animal, idx) => {
-          animaisHtml += <b>Animal ${idx + 1}:</b> ${animal.nome}<br>Info: ${animal.info || "N/A"}<br><br>;
+          animaisHtml += `<b>Animal ${idx + 1}:</b> ${animal.nome}<br>Info: ${animal.info || "N/A"}<br><br>`;
         });
       } else {
-        animaisHtml = <b>Animal:</b> ${data.animal_nome || ""}<br>Info: ${data.animal_info || "N/A"}<br><br>;
+        animaisHtml = `<b>Animal:</b> ${data.animal_nome || ""}<br>Info: ${data.animal_info || "N/A"}<br><br>`;
       }
       let popupContent = `
           <b>${data.nome_ong}</b><br>
@@ -774,7 +778,7 @@
           Hora: ${data.horario_evento}<br>
     `;
       if (user)
-        popupContent += <button class="popup-delete-btn" data-id="${docId}">Excluir</button>;
+        popupContent += `<button class="popup-delete-btn" data-id="${docId}">Excluir</button>`;
       const adoptionIcon = L.divIcon({
         html: "🐾",
         className: "adoption-icon leaflet-div-icon",
